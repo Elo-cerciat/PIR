@@ -1,0 +1,260 @@
+---
+title: "R_project"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+
+x = linspace(0,2000, n=100)
+y=exp(-x)
+valeurs = c()
+
+print(length(valeurs))
+for (i in 1:100){
+  valeurs = simPois(y, cens = 2000, exp.int= TRUE, par=c(1,1))
+  if (length(valeurs) != 0){
+    print(KScorrect::LcKS(valeurs, cdf="pexp")[3])
+    if (KScorrect::LcKS(valeurs, cdf="pexp")[3] > 0.05){print("ACCEPTED")}
+    else{print("REJECTED")} 
+    
+  }
+}
+
+```
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+
+x_2 = linspace(0,2000, n=50)
+y_2 = exp(-x_2)
+for (i in 1:50){
+  valeurs = simPois(y, cens = 2000, exp.int= TRUE, par=c(1,1))
+  if (length(valeurs) != 0){
+    print(KScorrect::LcKS(valeurs, cdf="pexp")[3])
+    if (KScorrect::LcKS(valeurs, cdf="pexp")[3] > 0.05){print("ACCEPTED")}
+    else{print("REJECTED")} 
+    
+  }
+}
+
+```
+
+
+```{r pressure, echo=FALSE}
+
+x_3 = linspace(1,2000, n=200)
+y_3 = log(x_3)
+for (i in 1:50){
+  valeurs = simPois(y, cens = 2000, exp.int= TRUE, par=c(1,1))
+  if (length(valeurs) != 0){
+    print(KScorrect::LcKS(valeurs, cdf="pexp")[3])
+    if (KScorrect::LcKS(valeurs, cdf="pexp")[3] > 0.05){print("ACCEPTED")}
+    else{print("REJECTED")} 
+    
+  }
+}
+
+
+
+```
+
+```{r pressure, echo=FALSE}
+library(pracma)
+library(IHSEP)
+
+x_4 = linspace(1,2000, n=200)
+y_4 = log(x_4)
+for (i in 1:50){
+  valeurs = simPois(y, cens = 2000, exp.int= TRUE, par=c(1,1))
+  if (length(valeurs) != 0){
+    print(KScorrect::LcKS(valeurs, cdf="pexp")[3])
+    if (KScorrect::LcKS(valeurs, cdf="pexp")[3] > 0.05){print("ACCEPTED")}
+    else{print("REJECTED")} 
+    
+  }
+}
+```
+
+
+```{r pressure, echo=FALSE}
+
+x_6 = linspace(1,2000, n=50)
+y_6 = log(x_6)
+for (i in 1:50){
+  valeurs = simPois(y, cens = 2000, exp.int= TRUE, par=c(1,1))
+  if (length(valeurs) != 0){
+    print(KScorrect::LcKS(valeurs, cdf="pexp")[3])
+    if (KScorrect::LcKS(valeurs, cdf="pexp")[3] > 0.05){print("ACCEPTED")}
+    else{print("REJECTED")} 
+    
+  }
+}
+
+```
+
+
+
+
+```{r pressure, echo=FALSE}
+x_5 = linspace(1,2000, n=200)
+y_5 = exp(-x_5)
+for (i in 1:50){
+  valeurs = simPois(y, cens = 2000, exp.int= TRUE, par=c(1,1))
+    if (length(valeurs) == 2 ){
+   
+    valeurs_2 = c(-log(valeurs[1]/valeurs[2]))
+    }
+    print(KScorrect::LcKS(valeurs_2, cdf="pexp")[3])
+    if (KScorrect::LcKS(valeurs_2, cdf="pexp")[3] > 0.05){print("ACCEPTED")}
+    else{print("REJECTED")} 
+    
+    if (length(valeurs) == 3 ){
+    
+    valeurs_3 = c(-log(valeurs[1]/valeurs[3]), -log(valeurs[2]/valeurs[3]))
+    
+    print(KScorrect::LcKS(valeurs_3, cdf="pexp")[3])
+    if (KScorrect::LcKS(valeurs_3, cdf="pexp")[3] > 0.05){print("ACCEPTED")}
+    else{print("REJECTED")} 
+    
+  }
+    
+  }
+```
+
+
+```{r pressure, echo=FALSE}
+# Nombre d'observations n fixé
+n = 10
+
+# Simulation des temps d'attentes d'un P.P.H.(1)
+W <- rexp(n = n, rate = 1)
+
+# Test sur les W
+Test_sur_W <- KScorrect::LcKS(W, cdf = "pexp")
+# Devrait retourner "TRUE"
+print(Test_sur_W$p.value>0.05)
+
+# Fonction d'intensité Weibull.
+Weibull <- function(T, alpha = 2, beta = 3) {
+  return (beta/alpha*(T/alpha)^(beta-1))
+}
+
+# Temps d'arrivée d'un Processus de Weibull
+T_Weibull <-
+```
+
+
+```{r pressure, echo=FALSE}
+nhpp.sim
+```
+
+
+```{r pressure, echo=FALSE}
+(rate = 1, num.events = n, prob.func = Weibull, , t0 = 0, prepend.t0 = FALSE)
+
+# Test sur les temps d'arrivée de Weibull directement
+Test_sur_Weibull <- KScorrect::LcKS(T_Weibull, cdf = "pexp")
+# Devrait retourner "FALSE"
+print(Test_sur_Weibull$p.value>0.05)
+
+# Transformation "theoreme 1"
+Tr <- function(T) {
+  return (-log(T[1:length(T)-1]/T[length(T)]))
+}
+
+# Test sur les temps d'arrivé de Weibull transformés
+Test_sur_Weibull_transforme <- KScorrect::LcKS(Tr(T_Weibull), cdf = "pexp")
+# Devrait retourner "TRUE"
+print(Test_sur_Weibull_transforme$p.value>0.05)
+
+# Intensité d'un processus autre
+intensity <- function(t){
+  return(exp(-t))
+}
+
+# Temps d'arrivée d'un processus autre
+Autre <- nhpp.sim(rate = 1, num.events = n, prob.func = intensity, , t0 = 0, prepend.t0 = FALSE)
+
+# Test sur les temps d'arrivé de "Autre" transformé
+Test_autre <- KScorrect::LcKS(Tr(Autre), cdf = "pexp")
+# Devrait retourner "FALSE"
+print(Test_autre$p.value>0.05)
+```
+
+
+```{r pressure, echo=FALSE}
+# Nombre d'observations n fixé
+n = 10
+
+# Simulation des temps d'attentes d'un P.P.H.(1)
+W <- rexp(n = n, rate = 1)
+
+# Temps d'arrivé d'un P.P.H.(1)
+T <- cumsum(W)
+
+# Inverse fonction intensité cumulée de Weibull
+Inv_Weibull <- function(t, alpha = 2, beta = 3) {
+  return(alpha*t^(1/beta))
+}
+
+# Inverse fonction intensité cumulée exponentielle
+Inv_Exp <- function(t) {
+  return(log(1/t))
+}
+
+# Inverse fonction intensité cumulée linéaire
+#Inv_T <- function(t) {
+#  return(sqrt(2*t))
+#}
+
+# Simulation temps arrivé Weibull
+T_Weibull <- Inv_Weibull(T)
+
+# Simulation temps arrivée exponentielle
+T_Exp <- Inv_Exp(T)
+
+# Simulation temps arrivée linéaire
+#T_T <- Inv_T(T)
+
+# Transformation "theoreme 1"
+Tr <- function(T) {
+  return (-log(T[1:length(T)-1]/T[length(T)]))
+}
+
+# Test sur les temps d'arrivé de Weibull transformés
+Test_pour_Weibull <- KScorrect::LcKS(Tr(T_Weibull), cdf = "pexp")
+# Devrait retourner "TRUE"
+print(Test_pour_Weibull$p.value>0.05)
+
+# Test sur les temps d'arrivé de exponentielle transformés
+Test_pour_Exp <- KScorrect::LcKS(Tr(T_Exp), cdf = "pexp")
+# Devrait retourner "FLASE"
+print(Test_pour_Exp$p.value>0.05)
+```
+
+
+```{r pressure, echo=FALSE}
+lambda <- function(t) {
+  return(exp(-t))
+}
+
+# Définir la fenêtre d'observation et le nombre de points de temps à simuler
+t_max <- 15
+n_steps <- 1000
+
+# Générer les instants de temps du processus
+t <- seq(0, t_max, length.out = n_steps)
+
+# Simuler un processus de Poisson inhomogène
+u <- runif(n_steps)
+event_times <- t[u < lambda(t)/max(lambda(t))]
+
+# Visualiser les résultats
+plot(event_times, rep(0, length(event_times)), pch = 16, ylim = c(0, 1), ylab = "", xlab = "Temps", main = "Processus de Poisson inhomogène simulé")
+```

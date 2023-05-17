@@ -1,0 +1,390 @@
+---
+title: "Untitled"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+#for(i in 1:50){
+# On fixe un nombre N d'observations
+#N = 2000
+# On fixe un intervalle t suffisament grand pour être négligeable
+#t = 10^(100)
+
+# On veut générer des temps d'arrivés d'un PPH(1)
+# On sait que les temps d'attentes son iid de loi exp(1)
+#W <- rexp(N,1)
+# A partir de là, on peut trouver les temps d'arrivés par somme cumulée
+#grandT <- cumsum(W)
+# Voilà les T sont les temps d'arrivés d'un PPH(1)
+# Comme t est très grand, on est "presque" assuré que max(T)<t
+
+# On génère N variables iid de loi U([0,1])
+#U <- runif(N, 0, 1)
+
+# On défini la fonction lambda
+#lambda <- function(t) {
+#  return (exp(-t))
+#}
+
+# Voici l'algorithme de rejet
+# On concerve les valeurs de T_i tel que U_i <= lambda(T_i)
+#Concerve <- (U <= lambda(grandT))
+# Attention, ici, on a pour chaque indice si c'est concervé ("True") ou pas ("FALSE")
+# Pour sélectioner les valeurs concervées, on fait :
+#T_concerve <- grandT[Concerve == TRUE]
+
+# Il ne manque plus qu'à les réordonner :
+#######################
+#S <- sort(T_concerve)
+#######################
+# Voilà !
+# Le vecteur S contient les temps d'arrivés (dans l'ordre en plus) 
+# d'un PPNH avec lambda(t) = exp(-t)
+#Tr <- function(t) {
+#  return (-log(t[1:length(t)-1]/t[length(t)]))
+#}
+
+#if (length(Tr(S))>0){print(KScorrect::LcKS(Tr(S),cdf="pexp")[3])} # S vide car souvent Ui<Ti
+#}
+```
+```{r}
+print(v1)
+```
+
+Calculs de beta^ et alpha^
+```{r setup, include=FALSE}
+n = length(v2) + 1
+print(n)
+
+Tr <- function(t) {
+  return(sum(t[1:length(t)]))
+}
+
+#print(Tr(v1))
+
+betachap = n / Tr(v2)
+print(betachap)
+
+alphachap = v2[length(v2)] / (n^(1/betachap))
+print(alphachap)
+
+```
+
+
+IC beta^ de nos données
+```{r}
+vectbetachap = c(1.7406, 0.9007,  0.9335  , 1.3078 , 1.5059 ,0.9877, 1.0880, 1.2914 )
+
+aircraft = list(A2,A3,A4,A5,A6,A7,A8,A13)
+
+for (j in 1:length(vectbetachap)){
+  quant1[j] = c(qchisq(1-0.975, df = 2*(length(aircraft[[j]])-1)))
+  quant2[j] = c(qchisq(0.975, df = 2*(length(aircraft[[j]])-1)))
+}
+
+#print(quant1)
+#print(quant2)
+intun = c()
+intdeux=c()
+for (i in 1:length(vectbetachap)){
+  intun[i] = c(vectbetachap[i]*quant1[i]/(2*length(aircraft[[i]]))) 
+  intdeux[i] = c(vectbetachap[i]*quant2[i]/(2*length(aircraft[[i]])))
+}
+print(intun)
+print(intdeux)
+
+```
+
+Test si beta = 1 contre beta /= 1 
+On rejette l'hypothèse que beta = 1 si beta^ n'appartient pas à l'intervalle : [2n / x^(2(n-1))_{1-gamma/2} , 2n / x^(2(n-1))_{gamma/2}]
+```{r}
+for (j in 1:length(vectbetachap)){
+  quant1[j] = c(qchisq(1-0.975, df = 2*(length(aircraft[[j]])-1)))
+  quant2[j] = c(qchisq(0.975, df = 2*(length(aircraft[[j]])-1)))
+}
+
+int_un = c()
+int_deux=c()
+
+for (i in 1:length(vectbetachap)){
+  int_un[i] = c(2*(length(aircraft[[i]])) / quant2[i]) 
+  int_deux[i] = c(2*(length(aircraft[[i]])) / quant1[i]) 
+}
+
+print(int_un)
+print(int_deux)
+print(vectbetachap)
+```
+
+1) On simule 20 processus de Weibull avec beta=(1,2,3)
+
+```{r}
+library("KScorrect")
+betachapeau = c()
+for(j in 1:20){
+      # Nombre d'observations n fixe GRAND
+      n = 1000
+      
+      # Simulation des temps d'attente 
+      #d'un P.P.H.(1)
+      W <- rexp(n = n, rate = 1)
+      
+      # Temps d'arrivee d'un P.P.H.(1)
+      grandT <- cumsum(W)
+      
+      # Inverse fonction intensite cumulee 
+      #de Weibull
+      Inv_Weibull <- function(t, alpha = 2, 
+                              beta = 3) {
+        return(alpha*t^(1/beta))
+      }
+      
+      
+      # Simulation temps arrivee Weibull
+      T_Weibull <- Inv_Weibull(grandT)
+   
+      # Transformation "theoreme 1"
+      Tr <- function(t) {
+        return (-log(t[1:length(t)-1]
+                     /t[length(t)]))
+      }
+      
+      # Test sur les temps d'arrivee de
+      #Weibull transformes
+      Test_pour_Weibull <- LcKS(Tr(T_Weibull),
+                                cdf = "pexp")
+      print(Test_pour_Weibull$p.value)
+      
+      # calcul de Beta^ 
+      n = length(Tr(T_Weibull)) + 1
+      
+      Tr_bis <- function(t) {
+      return(sum(t[1:length(t)]))
+      }
+      betachap = n / Tr_bis(Tr(T_Weibull))
+      betachapeau[j] = c(betachap)
+    #  print(paste("beta chapeau = ", betachap))
+      
+}
+print(betachapeau)
+
+
+```
+```{r}
+
+```
+
+
+2) Test beta=1 contre beta /= 1 
+
+```{r}
+quant1 = c()
+quant2 = c()
+for (j in 1:length(betachapeau)){
+  quant1[j] = c(qchisq(1-0.975, df = 2*(1000-1)))
+  quant2[j] = c(qchisq(0.975, df = 2*(1000-1)))
+}
+
+int_un = c()
+int_deux=c()
+
+for (i in 1:length(betachapeau)){
+  int_un[i] = c(2*1000 / quant2[i]) 
+  int_deux[i] = c(2*1000 / quant1[i]) 
+}
+
+print(paste("int_un", int_un))
+print(paste("int deux : ", int_deux))
+print(paste("beta^: " , betachapeau))
+```
+
+
+
+
+```{r}
+
+library("KScorrect")
+betachapeau = c()
+alphachapeau = c()
+intun = c()
+intdeux=c()
+for(j in 1:50){
+      # Nombre d'observations n fixe GRAND
+      n = 1000
+      
+      # Simulation des temps d'attente 
+      #d'un P.P.H.(1)
+      W <- rexp(n = n, rate = 1)
+      
+      # Temps d'arrivee d'un P.P.H.(1)
+      grandT <- cumsum(W)
+      
+      # Inverse fonction intensite cumulee 
+      #de Weibull
+      Inv_Weibull <- function(t, alpha = 2, 
+                              beta = 1) {
+        return(alpha*t^(1/beta))
+      }
+      
+      
+      # Simulation temps arrivee Weibull
+      T_Weibull <- Inv_Weibull(grandT)
+   
+      # Transformation "theoreme 1"
+      Tr <- function(t) {
+        return (-log(t[1:length(t)-1]
+                     /t[length(t)]))
+      }
+      
+      # Test sur les temps d'arrivee de
+      #Weibull transformes
+      Test_pour_Weibull <- LcKS(Tr(T_Weibull),
+                                cdf = "pexp")
+     # print(Test_pour_Weibull$p.value)
+      
+      # calcul de Beta^ 
+      Tr_bis <- function(t) {
+      return(sum(t[1:length(t)]))
+      }
+      betachap = n / Tr_bis(Tr(T_Weibull))
+      betachapeau[j] = c(betachap)
+      alphachap = Tr(T_Weibull)[length(Tr(T_Weibull))] / ((length(Tr(T_Weibull))+1)^(1/betachap))
+      alphachapeau[j] = c(alphachap)
+      
+      
+      quant1[j] = c(qchisq(1-0.975, df = 2*(length(Tr(T_Weibull))-1)))
+      quant2[j] = c(qchisq(0.975, df = 2*(length(Tr(T_Weibull))-1)))
+      
+      intun[j] = c(betachapeau[j]*quant1[j]/(2*length(Tr(T_Weibull)))) 
+      intdeux[j] = c(betachapeau[j]*quant2[j]/(2*length(Tr(T_Weibull))))
+
+}
+print(betachapeau)
+print(alphachapeau)
+print(intun)
+print(intdeux)
+
+
+```
+
+
+```{r}
+##################################################
+# Quantiles pour IC de alpha
+##################################################
+
+# On cherche s tel que P(U<=s) = valeur
+# où U = beta_hat*log(alpha_hat/alpha)
+# Initialisation
+valeur <- 0.05/2 
+s <- -1
+# Fonction de l'intégrale
+# Attention, pour des soucis de R, le x et le t du livre sont inversés ici
+f <- function(x, t = s, n = 16) {
+  Fe = 2*exp(x*(t+log(n)))
+  return(pchisq(Fe, df = 2*n)*n^(n-1)/prod(seq(1,n-2,1))*x^(n-2)*exp(-n*x))
+}
+# Calcule de l'intégrale à t fixé (donc x du livre fixé)
+I <- integrate(f, lower = 0, upper = Inf)[1]$value
+# Pour différents t (donc x dans le livre), on calcul I jusqu'à trouver 
+# le t (donc x) tel que I = valeur
+while(I < valeur) {
+  s <- s+0.01 # C'est le t (donc le x) qui évolue
+  I <- integrate(f, lower = 0, upper = Inf)[1]$value
+}
+# le dernier s est le x du livre que l'on cherche
+x1 <- s
+
+# On fait ça pour l'autre bout
+valeur <- 1-0.05/2
+s <- -2
+I <- integrate(f, lower = 0, upper = Inf)[1]$value
+while(I < valeur) {
+  s <- s+0.01
+  I <- integrate(f, lower = 0, upper = Inf)[1]$value
+}
+# s est ce qu'on cherche
+x2 <- s
+
+############################################
+#IC
+############################################
+
+# alpha hat
+# Temps d'attentes A2
+A2 <- c(413, 14, 58, 37, 100, 65, 9, 169, 447, 184, 36, 201, 118, 34, 31, 18, 18, 67, 57, 62, 7, 22, 34) 
+A3 = c(90, 10, 60,186,61,49,14,24,56,20,79,84,44,59,29,118,25, 156,310, 76,26,44,23,62,130,208,70,101,208)
+A4 = c(74,57,48,29,502,12,70,21,29,386,59,27,153,26,326)
+A5= c(55,320, 56,104,220,239,47,246,176,182,33,15,104,35)
+A6= c(23,261,87,7,120,14,62,47,225,71,246,21,42,20,5,12,120,11,3,14,71,11,14,11,16,90,1,16,52,95)
+A7 = c(97,51,11,4,141,18,142,68,77,80,1, 16, 106, 206,82,54,31,216,46,111,39,63,18,191,18,163,24)
+A8=c(50,44,102,72,22,39,3,15,197,188,79,88,46,5,5,36,22,139,210,97,30,23,13,14)
+A13=c(102,209,14,57,54,32,67,59,134,152,27,14,230,66,61,34)
+T2 <- cumsum(A2)
+T3 = cumsum(A3)
+T4 = cumsum(A4)
+T5 = cumsum(A5)
+T6 = cumsum(A6)
+T7 = cumsum(A7)
+T8 = cumsum(A8)
+T13 = cumsum(A13)
+
+n = length(T13)
+print(n)
+
+#beta_1= n / sum(-log(T2[1:n-1]/T2[n]))
+#print(beta_1)
+alpha_hat <- T13[n]/(n^(1/vectbetachap[8] ))
+# l'IC est [a,b]:
+a <- alpha_hat*exp(-x2/vectbetachap[8])
+b <- alpha_hat*exp(-x1/vectbetachap[8])
+print(alpha_hat)
+print(paste("a=",a))
+print(paste("b=",b))
+```
+
+```{r}
+# Taille du vecteur des Ti
+n = length(T2)
+# Vecteur des -ln
+V <- -log(T2[1:n-1]/T2[n])
+# Test d'adéquation à une loi expo (test si Weibull)
+Test <- LcKS(V, cdf = "pexp")
+# Extraction des simulation de Monte Carlo du test
+D_sim <- sort(Test$D.sim)
+# Extraction du quantile d'ordre 1-0.05 (d'où le 95/100)
+Test_quantile <- D_sim[round(95/100*length(D_sim))]
+# On affiche la fonction de répartition empirique
+plot(ecdf(V))
+# Beta chapeau du test
+beta_hat <- 1/mean(V)
+# Fonction de répartition expo du test
+F_hat <- 1-exp(-beta_hat*seq(0, 2, 0.01))
+# Bornes
+lines(x = seq(0, 2, 0.01), F_hat+Test_quantile)
+lines(x = seq(0, 2, 0.01), F_hat-Test_quantile)
+
+
+```
+
+```{r}
+n = length(v1) + 1
+print(n)
+
+Tr <- function(t) {
+  return(sum(t[1:length(t)]))
+}
+
+#print(Tr(v1))
+
+betachap = n / Tr(v1)
+print(betachap)
+
+
+```
+
+
+
+
+
+
