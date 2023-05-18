@@ -1,0 +1,169 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library("KScorrect")
+      
+for(j in 1:50){
+      # Nombre d'observations n fixe GRAND
+      n = 1000
+      
+      # Simulation des temps d'attente 
+      #d'un P.P.H.(1)
+      W <- rexp(n = n, rate = 1)
+      
+      # Temps d'arrivee d'un P.P.H.(1)
+      grandT <- cumsum(W)
+      
+      # Inverse fonction intensite cumulee 
+      #de Weibull
+      Inv_Weibull <- function(t, alpha = 2, 
+                              beta = 1) {
+        return(alpha*t^(1/beta))
+      }
+      
+      # Inverse fonction intensite cumulee 
+      #exponentielle
+      #Inv_Exp <- function(t) {
+      #  return(log(t+1))
+      #}
+      
+      # Simulation temps arrivee Weibull
+      T_Weibull <- Inv_Weibull(grandT)
+      
+      # Simulation temps arrivee 
+      #exponentielle
+      #T_Exp <- Inv_Exp(grandT)
+      
+      # création du vecteur des Wi 
+      funct_W = function(t){
+        W = c()
+        W[1] = t[1]
+        for (i in 2:length(t)){
+          W[i] = t[i]-t[i-1]
+        }
+        return(W)
+      }
+   
+      # Transformation "theoreme 1"
+      Tr <- function(t) {
+        return (-log(t[1:length(t)-1]
+                     /t[length(t)]))
+      }
+      
+      # Test sur les temps d'arrivee de
+      #Weibull transformes
+      Test_pour_W_Weibull <- LcKS(funct_W(T_Weibull),
+                                cdf = "pexp")
+      print(Test_pour_W_Weibull$p.value)
+      
+      # Test sur les temps d'arrivee de 
+      #exp transformes
+      #Test_pour_Exp <- LcKS(Tr(T_Exp), 
+      #cdf = "pexp")
+}
+```
+
+
+```{r}
+# Devrait retourné "False"
+      #print(Test_pour_Exp$p.value)
+}
+```
+
+
+```{r}
+# Test sur les temps d'arrivé de linéaire transformés
+Test_pour_Exp2 <- LcKS(Tr(T_Exp), cdf = "pexp")
+# Devrait retourné "TRUE"
+print(Test_pour_Exp2$p.value)
+p <- ppoints(n = 100) # 100 equally spaced points on (0,1), excluding endpoints
+q <- quantile(Tr(T_Exp), p = p) # percentiles of the sample distribution
+png(file="expo_simu_T_EXP.png",
+width=600, height=350)
+plot(qexp(p) ,q, main="Exponential Q-Q Plot",
+     xlab="Theoretical Quantiles",ylab="Sample Quantiles")
+qqline(q, distribution=qexp,col="blue", lty=2)
+```
+
+
+```{r}
+
+#X <- rexp(n = 1000, rate = 3) # Pour simuler 1000-échantillon iid e(3)
+p <- ppoints(n = 100) # 100 equally spaced points on (0,1), excluding endpoints
+q <- quantile(Tr(v8), p = p) # percentiles of the sample distribution
+png(file="A13.png",
+width=600, height=350)
+plot(qexp(p) ,q, main="Exponential Q-Q Plot - A13",
+     xlab="Theoretical Quantiles",ylab="Sample Quantiles")
+qqline(q, distribution=qexp,col="blue", lty=2)
+```
+
+
+```{r}
+#print(length(T_Weibull))
+#print(T_Weibull[1])
+W = c(T_Weibull[1])
+for(i in 2:length(T_Weibull)){
+  W[i]= T_Weibull[i] - T_Weibull[i-1] 
+}
+Test_pour_Exp <- LcKS(W, cdf = "pexp")
+#print(Test_pour_Exp[3])
+p <- ppoints(n = 100) # 100 equally spaced points on (0,1), excluding endpoints
+q <- quantile(W, p = p) # percentiles of the sample distribution
+png(file="expo_simu_W_beta=1.png",
+width=600, height=350)
+plot(qexp(p) ,q, main="Exponential Q-Q Plot",
+     xlab="Theoretical Quantiles",ylab="Sample Quantiles")
+qqline(q, distribution=qexp,col="blue", lty=2)
+```
+
+
+```{r}
+Test_pour_Weibull2 <- LcKS(v8, cdf = "pexp")
+# Devrait retourné "TRUE"
+print(Test_pour_Weibull2$p.value)
+p <- ppoints(n = 100) # 100 equally spaced points on (0,1), excluding endpoints
+q <- quantile(Tr(v8), p = p) # percentiles of the sample distribution
+png(file="test_weilbull_v8.png",
+width=600, height=350)
+plot(qexp(p) ,q, main="Exponential Q-Q Plot",
+     xlab="Theoretical Quantiles",ylab="Sample Quantiles")
+qqline(q, distribution=qexp,col="blue", lty=2)
+```
+
+
+```{r}
+print(length(v5))
+```
+```{r}
+print(length(v1))
+# v_ sont nos vecteurs de temps d'arrivee
+W = c(v1[1])
+for(i in 2:length(v1)){
+  W[i]= v2[i] - v2[i-1] 
+}
+Test_pour_Exp <- LcKS(W, cdf = "pexp")
+print(Test_pour_Exp[3])
+#p <- ppoints(n = 100) # 100 equally spaced points on (0,1), excluding endpoints
+#q <- quantile(W, p = p) # percentiles of the sample distribution
+#png(file="test_homo_A13.png",
+#width=600, height=350)
+#plot(qexp(p) ,q, main="Exponential Q-Q Plot - A13",
+#     xlab="Theoretical Quantiles",ylab="Sample Quantiles")
+```
+
+
+```{r}
+help("confint")
+```
+
+
+
+
